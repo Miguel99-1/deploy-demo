@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -26,20 +26,12 @@ import Stadiums from './admin/Stadiums';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [error, setError] = useState('');
+  const [isAdmin] = useState(false);
+  const [setError] = useState('');
 
-  const checkAdminStatus = () => {
-    if (user && user.roleId === 1) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  };
 
-  useEffect(() => {
-    checkAdminStatus();
-  }, [user]);
+
+
 
   const { login } = useAuth();
   const { register } = useAuth();
