@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login e Registro</title>
+  <!-- Adicione as referências ao CSS e JavaScript do Bootstrap (se não estiverem incluídas) -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab">Registro</a>
+          </li>
+        </ul>
+      </div>
+      <div class="card-body">
+        <div class="tab-content">
+          <!-- Formulário de Login -->
+          <div class="tab-pane fade" id="login" role="tabpanel">
+            <form action="/login" method="POST" id="loginForm">
+              <div class="form-group">
+                <label for="loginEmail">E-mail:</label>
+                <input type="email" class="form-control" id="loginEmail" name="email" required>
+              </div>
+              <div class="form-group">
+                <label for="loginPassword">Senha:</label>
+                <input type="password" class="form-control" id="loginPassword" name="password" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Entrar</button>
+            </form>
+            <div id="loginError" class="text-danger"></div>
+          </div>
+          
+          <!-- Formulário de Registro -->
+          <div class="tab-pane fade" id="register" role="tabpanel">
+            <form action="/register" method="POST" id="registerForm">
+              <div class="form-group">
+                <label for="registerEmail">E-mail:</label>
+                <input type="email" class="form-control" id="registerEmail" name="email" required>
+                <span id="emailCheck"></span>
+              </div>
+              <div class="form-group">
+                <label for="registerPassword">Senha:</label>
+                <input type="password" class="form-control" id="registerPassword" name="password" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Registrar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      $('#login').addClass('show active');
+      // Quando o formulário de login for enviado
+      $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const email = $('#loginEmail').val();
+        const password = $('#loginPassword').val();
+    
+        if (email && password) {
+          $.ajax({
+            url: '/login', // Rota para verificar login
+            method: 'POST',
+            data: { email: email, password: password },
+            success: function(response) {
+              // Redireciona para a página principal se o login for bem-sucedido
+              window.location.replace('/inicial.html');
+            },
+            error: function(xhr) {
+              const errorMessage = xhr.responseJSON.message;
+              $('#loginError').text(errorMessage);
+            }
+          });
+        }
+      });
+    });
+    </script>
+
+  <script>
+    $(document).ready(function() {
+      // Quando o campo de e-mail perder o foco
+      $('#registerEmail').on('blur', function() {
+        const email = $(this).val();
+    
+        if (email) {
+          $.ajax({
+            url: '/checkEmail', // Rota que verifica o e-mail
+            method: 'POST',
+            data: { email: email },
+            success: function(response) {
+              if (response.exists) {
+                $('#emailCheck').text('Este e-mail já está registrado.');
+                $('#registerEmail').addClass('is-invalid');
+              } else {
+                $('#emailCheck').text('');
+                $('#registerEmail').removeClass('is-invalid');
+              }
+            },
+          });
+        }
+      });
+    });
+    </script>
+
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Teams List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #teamsList {
+            list-style: none;
+            padding: 0;
+        }
+
+        .team {
+            border: 1px solid #ddd;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #searchInput {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        #teamCount {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NBA Teams List</h1>
+
+    <input type="text" id="searchInput" placeholder="Pesquisar por equipa...">
+    <ul id="teamsList"></ul>
+    <div id="teamCount"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const teamsList = $('#teamsList');
+            const searchInput = $('#searchInput');
+            const teamCount = $('#teamCount');
+
+            function fetchTeams(page) {
+                $.ajax({
+                    url: 'https://api.sportsdata.io/v3/nba/scores/json/teams?key=ada39cffc94442059f91f8c50e7d0dff',
+                    type: 'GET',
+                    success: function(response) {
+                        const teams = response;
+
+                        teams.forEach(function(team) {
+                            const listItem = $('<li class="team"></li>');
+                            listItem.html(`<strong>${team.Name} ${team.Conference}</strong> - ${team.Division}`);
+                            teamsList.append(listItem);
+                        });
+
+                        // Atualiza a contagem de equipas
+                        teamCount.text(`Total de equipas: ${teams.length}`);
+                    },
+                    error: function(error) {
+                        console.error('Erro ao obter dados da API:', error);
+                    }
+                });
+            }
+
+            // Inicia a busca a partir da primeira página
+            fetchTeams(0);
+
+            // Adiciona um ouvinte de eventos para a barra de pesquisa
+            searchInput.on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+
+                // Filtra as equipas com base no termo de pesquisa
+                const filteredTeams = $('#teamsList li').filter(function() {
+                    return $(this).text().toLowerCase().includes(searchTerm);
+                });
+
+                // Esconde todas as equipas
+                $('#teamsList li').hide();
+
+                // Exibe apenas as equipas filtradas
+                filteredTeams.show();
+            });
+        });
+    </script>
+</body>
+</html>

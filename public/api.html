@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Players List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #playersList {
+            list-style: none;
+            padding: 0;
+        }
+
+        .player {
+            border: 1px solid #ddd;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #searchInput {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        #playerCount {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NBA Players List</h1>
+
+    <input type="text" id="searchInput" placeholder="Pesquisar por jogador...">
+    <ul id="playersList"></ul>
+    <div id="playerCount"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const playersList = $('#playersList');
+            const searchInput = $('#searchInput');
+            const playerCount = $('#playerCount');
+
+            function fetchPlayers(page) {
+                $.ajax({
+                    url: 'https://api.sportsdata.io/v3/nba/scores/json/Players?key=ada39cffc94442059f91f8c50e7d0dff',
+                    type: 'GET',
+                    success: function(response) {
+                        const players = response;
+
+                        players.forEach(function(player) {
+                            const listItem = $('<li class="player"></li>');
+                            listItem.html(`<strong>${player.FirstName} ${player.LastName}</strong> - ${player.Position}, Team: ${player.Team}`);
+                            playersList.append(listItem);
+                        });
+
+                        // Atualiza a contagem de jogadores
+                        playerCount.text(`Total de jogadores: ${players.length}`);
+                    },
+                    error: function(error) {
+                        console.error('Erro ao obter dados da API:', error);
+                    }
+                });
+            }
+
+            // Inicia a busca a partir da primeira página
+            fetchPlayers(0);
+
+            // Adiciona um ouvinte de eventos para a barra de pesquisa
+            searchInput.on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+
+                // Filtra os jogadores com base no termo de pesquisa
+                const filteredPlayers = $('#playersList li').filter(function() {
+                    return $(this).text().toLowerCase().includes(searchTerm);
+                });
+
+                // Esconde todos os jogadores
+                $('#playersList li').hide();
+
+                // Exibe apenas os jogadores filtrados
+                filteredPlayers.show();
+            });
+        });
+    </script>
+</body>
+</html>
