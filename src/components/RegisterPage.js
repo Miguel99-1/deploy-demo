@@ -12,7 +12,6 @@ const RegisterPage = ({ onRegister }) => {
 
     try {
       // Chama a função onRegister passando as credenciais
-      const userData = await onRegister(email, password);
       
       // Redireciona para a página inicial após o registro bem-sucedido
       navigate('/');

@@ -7,7 +7,7 @@ const DataDisplay = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [playerCount, setPlayerCount] = useState(0);
+  const [setPlayerCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {

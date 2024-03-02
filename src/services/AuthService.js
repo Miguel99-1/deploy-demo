@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   };
   
 
-  const register = async (email, password, rolesid) => {
+  const register = async (email, password) => {
     try {
       const response = await fetch('http://localhost:8000/register', {
         method: 'POST',
