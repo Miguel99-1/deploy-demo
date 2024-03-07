@@ -6,18 +6,25 @@ import { useAuth } from '../services/AuthService';
 const LoginPage = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
       const response = await login(email, password);
+      console.log('Login response:', response); // Adicione este log para depuração
       if (response.token) {
         localStorage.setItem('token', response.token);
-        setUser(response.user); // Atualiza o estado do usuário após o login
-        navigate('/players');
+        setUser(response.user);
+        if (response.user.rolesId === '1') {
+          setIsAdmin(true);
+          navigate('/admin');
+        } else {
+          navigate('/players');
+        }
       } else {
         throw new Error('Token de autenticação não encontrado na resposta.');
       }

@@ -1,24 +1,25 @@
-import React, { useState } from "react";
+// App.js
+import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import NavbarAdmin from "./admin/NavbarAdmin";
-import Navbar from "./components/Navbar";
-import HomePage from "./components/HomePage";
-import ApiPage from "./components/ApiPage";
-import TeamsPage from "./components/TeamsPage";
-import PlayersPage from "./components/PlayersPage";
-import SeasonGamesPage from "./components/SeasonGamesPage";
-import DayGamesPage from "./components/DayGamesPage";
-import LoginPage from "./components/LoginPage";
-import RegisterPage from "./components/RegisterPage";
-import { AuthProvider, useAuth } from "./services/AuthService";
-import StandingsPage from "./components/StandingsPage";
-import GlobalStyles from "./GlobalStyles";
-import PlayersStatsPage from "./components/PlayersStatsPage";
+} from 'react-router-dom';
+import NavbarAdmin from './admin/NavbarAdmin';
+import Navbar from './components/Navbar';
+import HomePage from './components/HomePage';
+import ApiPage from './components/ApiPage';
+import TeamsPage from './components/TeamsPage';
+import PlayersPage from './components/PlayersPage';
+import SeasonGamesPage from './components/SeasonGamesPage';
+import DayGamesPage from './components/DayGamesPage';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import { AuthProvider, useAuth } from './services/AuthService';
+import StandingsPage from './components/StandingsPage';
+import GlobalStyles from './GlobalStyles';
+import PlayersStatsPage from './components/PlayersStatsPage';
 import AdminPage from './admin/AdminPage';
 import DataDisplay from './admin/DataDisplay';
 import Teams from './admin/Teams';
@@ -26,24 +27,33 @@ import Stadiums from './admin/Stadiums';
 import TeamDetailsPage from './components/TeamDetailsPage'; 
 
 const App = () => {
-  const [user, setUser] = useState(null); // Estado do usuário
-  const [isAdmin] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const { login, register } = useAuth();
 
   const handleLogout = () => {
     setUser(null);
+    setIsAdmin(false);
   };
+
+  useEffect(() => {
+    if (user && user.rolesid === 1) {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
 
   return (
     <>
       <GlobalStyles />
       <Router>
-        {isAdmin ? (
+        {/* {isAdmin ? (
           <NavbarAdmin user={user} onLogout={handleLogout} />
-        ) : (
+        ) : ( */}
           <Navbar user={user} onLogout={handleLogout} />
-        )}
+        {/* )} caso queira que a navbar altere sem ser o admin a escolher que navbar quer*/}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/api" element={<ApiPage />} />

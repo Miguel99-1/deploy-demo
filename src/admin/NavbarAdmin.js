@@ -1,4 +1,4 @@
-// Navbar.js
+// NavbarAdmin.js
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -9,7 +9,7 @@ import {
   LogoutButton,
 } from "./NavbarAdminStyles";
 
-const NavbarAdmin = ({ user, onLogout }) => {
+const NavbarAdmin = ({ user, onLogout, onReturnToNormalNavbar }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,12 +17,16 @@ const NavbarAdmin = ({ user, onLogout }) => {
     navigate("/login");
   };
 
+  const handleReturnToNormalNavbar = () => {
+    onReturnToNormalNavbar(); // Chama a função para retornar à Navbar normal
+  };
+
   return (
     <NavbarContainer>
       <div>
         <Link to="/">
           <img
-            src="https://placehold.it/50x50" // Substitua pela URL do seu logotipo
+            src="https://placehold.it/50x50"
             alt="Logo"
             style={{ marginRight: "10px" }}
           />
@@ -32,7 +36,6 @@ const NavbarAdmin = ({ user, onLogout }) => {
         </span>
       </div>
       <NavList>
-        {/* Adicione mais itens de navegação conforme necessário */}
         {user && (
           <>
             <NavLink as={Link} to="/">
@@ -68,8 +71,8 @@ const NavbarAdmin = ({ user, onLogout }) => {
       </NavList>
       <NavList>
         <NavItem>
-          <NavLink as={Link} to="/admin">
-            Admin
+          <NavLink as={Link} to="/" onClick={handleReturnToNormalNavbar}>
+            NormalNavbar
           </NavLink>
         </NavItem>
       </NavList>

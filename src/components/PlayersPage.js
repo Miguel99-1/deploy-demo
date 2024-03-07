@@ -3,11 +3,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from '../services/AuthService.js'; // Importe o useAuth
 
-const PlayersPage = () => {
+const PlayersPage = (user) => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
-  const { userRoleId } = useAuth(); // Obtém o roleId do contexto de autenticação
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -77,7 +76,7 @@ const PlayersPage = () => {
           <li key={player.PlayerID} className="player">
             <strong>{`${player.FirstName} ${player.LastName}`}</strong> -{" "}
             {`${player.Position}, Team: ${player.TeamName}`}
-            {userRoleId === 1 && (
+            {user && user.rolesid === 1 && ( // Verifica o rolesid do usuário
               <div>
                 <button onClick={() => handleEditPlayer(player)}>Editar</button>
                 <button onClick={() => handleDeletePlayer(player.PlayerID)}>Excluir</button>
@@ -93,5 +92,6 @@ const PlayersPage = () => {
     </div>
   );
 };
+
 
 export default PlayersPage;
