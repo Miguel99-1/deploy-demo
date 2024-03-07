@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,28 +27,9 @@ import Stadiums from './admin/Stadiums';
 const App = () => {
   const [user, setUser] = useState(null);
   const [isAdmin] = useState(false);
-  const [setError] = useState('');
 
+  const { login, register } = useAuth();
 
-
-
-
-  const { login } = useAuth();
-  const { register } = useAuth();
-
-  const handleLogin = async (email, password, rolesid) => {
-    try {
-      const userData = await login(email, password, rolesid);
-      setUser(userData); 
-    } catch (error) {
-      console.error(error.message);
-      setError('Credenciais inválidas');
-    }
-  };
-  
-  
-  
-  
   const handleLogout = () => {
     setUser(null);
   };
@@ -70,20 +51,20 @@ const App = () => {
           <Route path="/teams" element={<Teams />} />
           <Route path="/players" element={<PlayersPage />} />
           <Route path="/stadiums" element={<Stadiums />} />
-            <>
-              <Route path="/teams" element={<TeamsPage />} />
-              <Route path="/season-games" element={<SeasonGamesPage />} />
-              <Route path="/day-games" element={<DayGamesPage />} />
-              <Route path="/playersstats" element={<PlayersStatsPage />} />
-              <Route path="/standings" element={<StandingsPage />} />
-            </>
+          <>
+            <Route path="/teams" element={<TeamsPage />} />
+            <Route path="/season-games" element={<SeasonGamesPage />} />
+            <Route path="/day-games" element={<DayGamesPage />} />
+            <Route path="/playersstats" element={<PlayersStatsPage />} />
+            <Route path="/standings" element={<StandingsPage />} />
+          </>
           <Route
             path="/login"
             element={
               user ? (
                 <Navigate to="/" replace />
               ) : (
-                <LoginPage onLogin={handleLogin} />
+                <LoginPage onLogin={login} />
               )
             }
           />
@@ -111,5 +92,3 @@ const AuthenticatedApp = () => (
 );
 
 export default AuthenticatedApp;
-
-

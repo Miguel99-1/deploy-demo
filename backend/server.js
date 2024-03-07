@@ -518,14 +518,14 @@ app.post("/adddata-stadium", async (req, res) => {
   } catch (error) {
     console.error(
       "Erro ao adicionar dados do estádio ao banco de dados:",
-      error
+      error 
     );
     res.status(500).send("Erro interno do servidor");
   }
 });
 
 app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rolesid } = req.body;
   console.log('Tentativa de login:', email);
   const query = `SELECT * FROM users WHERE email = '${email}'`;
 

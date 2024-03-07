@@ -1,24 +1,22 @@
+// LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
 
-const LoginPage = () => {
+const LoginPage = ({ user, onLogin }) => {
   const [email, setEmail] = useState('');
+  const [rolesid] = useState ('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Impedir o envio padrão do formulário
+    e.preventDefault();
 
     try {
-      // Realizar o login
-      const userData = await login(email, password);
-      
-      // Verificar se o login foi bem-sucedido e redirecionar para a página de players
-      if (userData) {
-        navigate('/players');
-      }
+      const userData = await login(email, password, rolesid);
+      onLogin(userData);
+      navigate('/players');
     } catch (error) {
       console.error(error.message);
     }
@@ -27,6 +25,7 @@ const LoginPage = () => {
   return (
     <div>
       <h1>Login</h1>
+      {user && <p>User is logged in!</p>}
       <form onSubmit={handleLogin}>
         <div>
           <label htmlFor="email">E-mail:</label>
@@ -50,8 +49,6 @@ const LoginPage = () => {
         </div>
         <button type="submit">Entrar</button>
       </form>
-      
-      {/* Adiciona um botão/link para a página de registro */}
       <div>
         Não tem uma conta? <Link to="/register">Registre-se</Link>
       </div>
