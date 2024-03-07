@@ -35,6 +35,17 @@ const Teams = () => {
       team.Conference.toLowerCase().includes(searchTerm) ||
       team.Division.toLowerCase().includes(searchTerm)
   );
+  const handleAddAllTeams = async () => {
+    try {
+      // Envia todas as equipes para o servidor Node.js
+      await Promise.all(teams.map(async (team) => {
+        await axios.post("http://localhost:8000/adddata2", team);
+      }));
+      console.log("Todas as equipes foram adicionadas com sucesso à base de dados");
+    } catch (error) {
+      console.error("Erro ao enviar equipes para o servidor:", error);
+    }
+  };
 
   const handleAddData = async (item) => {
     try {
@@ -97,6 +108,7 @@ const Teams = () => {
         value={searchTerm}
         onChange={handleSearchInputChange}
       />
+      <button onClick={handleAddAllTeams}>Adicionar todas as equipes</button>
 
       <ul>
         {filteredTeams.map((team) => (

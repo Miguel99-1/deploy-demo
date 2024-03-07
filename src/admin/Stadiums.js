@@ -44,6 +44,23 @@ const Stadiums = () => {
     }
   };
 
+
+  const handleAddAllStadiums = async () => {
+    try {
+      // Envia todos os estádios para o servidor Node.js
+      await Promise.all(
+        stadiums.map(async (stadium) => {
+          await axios.post("http://localhost:8000/adddata-stadium", stadium);
+        })
+      );
+      console.log("Todos os estádios foram adicionados com sucesso à base de dados");
+    } catch (error) {
+      console.error("Erro ao enviar estádios para o servidor:", error);
+    }
+  };
+
+
+
   return (
     <div>
       <h1>NBA Stadiums List</h1>
@@ -55,7 +72,7 @@ const Stadiums = () => {
         value={searchTerm}
         onChange={handleSearchInputChange}
       />
-
+   <button onClick={handleAddAllStadiums}>Adicionar todos os estádios</button>
       <ul>
         {filteredStadiums.map((stadium) => (
           <li key={stadium.StadiumID} className="stadium">

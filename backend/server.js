@@ -524,6 +524,8 @@ app.post("/adddata-stadium", async (req, res) => {
   }
 });
 
+const jwt = require('jsonwebtoken');
+
 app.post('/login', (req, res) => {
   const { email, password, rolesid } = req.body;
   console.log('Tentativa de login:', email);
@@ -539,7 +541,9 @@ app.post('/login', (req, res) => {
           const passwordMatch = await bcrypt.compare(password, user.password);
 
           if (passwordMatch) {
-              res.json({ user });
+              // Gerar token JWT
+              const token = jwt.sign({ userId: user.id }, 'seu_segredo_secreto', { expiresIn: '1h' });
+              res.json({ user, token }); // Retornar o token junto com os dados do usuário
           } else {
               res.status(401).json({ message: 'Credenciais inválidas' });
           }
@@ -548,6 +552,7 @@ app.post('/login', (req, res) => {
       }
   });
 });
+
 
 // Create a nodemailer transporter
 const transporter = nodemailer.createTransport({

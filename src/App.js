@@ -23,9 +23,10 @@ import AdminPage from './admin/AdminPage';
 import DataDisplay from './admin/DataDisplay';
 import Teams from './admin/Teams';
 import Stadiums from './admin/Stadiums';
+import TeamDetailsPage from './components/TeamDetailsPage'; 
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // Estado do usuário
   const [isAdmin] = useState(false);
 
   const { login, register } = useAuth();
@@ -48,7 +49,7 @@ const App = () => {
           <Route path="/api" element={<ApiPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/datadisplay" element={<DataDisplay />} />
-          <Route path="/teams" element={<Teams />} />
+          <Route path="/teamsadmin" element={<Teams />} />
           <Route path="/players" element={<PlayersPage />} />
           <Route path="/stadiums" element={<Stadiums />} />
           <>
@@ -57,17 +58,9 @@ const App = () => {
             <Route path="/day-games" element={<DayGamesPage />} />
             <Route path="/playersstats" element={<PlayersStatsPage />} />
             <Route path="/standings" element={<StandingsPage />} />
+            <Route path="/team/:TeamId" element={<TeamDetailsPage />} />
           </>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/" replace />
-              ) : (
-                <LoginPage onLogin={login} />
-              )
-            }
-          />
+          <Route path="/login" element={<LoginPage setUser={setUser} />} />
           <Route
             path="/register"
             element={

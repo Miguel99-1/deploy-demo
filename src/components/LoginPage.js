@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
 
-const LoginPage = ({ user, onLogin }) => {
+const LoginPage = ({ setUser }) => {
   const [email, setEmail] = useState('');
-  const [rolesid] = useState ('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -14,18 +13,22 @@ const LoginPage = ({ user, onLogin }) => {
     e.preventDefault();
 
     try {
-      const userData = await login(email, password, rolesid);
-      onLogin(userData);
-      navigate('/players');
+      const response = await login(email, password);
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        setUser(response.user); // Atualiza o estado do usuário após o login
+        navigate('/players');
+      } else {
+        throw new Error('Token de autenticação não encontrado na resposta.');
+      }
     } catch (error) {
-      console.error(error.message);
+      console.error('Erro ao fazer login:', error.message);
     }
   };
 
   return (
     <div>
       <h1>Login</h1>
-      {user && <p>User is logged in!</p>}
       <form onSubmit={handleLogin}>
         <div>
           <label htmlFor="email">E-mail:</label>

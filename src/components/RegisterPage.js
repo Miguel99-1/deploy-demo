@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../services/AuthService';
 
 const RegisterPage = ({ onRegister }) => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      // Chama a função onRegister passando as credenciais
-      
-      // Redireciona para a página inicial após o registro bem-sucedido
-      navigate('/');
+      await register(email, password);
+      navigate('/'); // Redirecionar após o registro bem-sucedido
     } catch (error) {
-      setError(error.message || 'Erro ao registrar');
+      console.error('Erro ao registrar:', error.message);
     }
   };
-
   return (
     <div>
       <h1>Registro</h1>

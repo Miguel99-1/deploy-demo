@@ -7,12 +7,12 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const login = async (email, password, rolesid) => {
+  const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:8000/login', { email, password, rolesid });
-      return response.data.user;
+      const response = await axios.post('http://localhost:8000/login', { email, password });
+      return response.data; // Retornando a resposta completa
     } catch (error) {
-      throw new Error('Erro ao autenticar');
+      throw new Error('Erro ao autenticar: ' + error.message);
     }
   };
 
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post('http://localhost:8000/register', { email, password });
       return response.data.user;
     } catch (error) {
-      throw new Error('Erro ao registrar');
+      throw new Error('Erro ao registrar: ' + error.message);
     }
   };
 

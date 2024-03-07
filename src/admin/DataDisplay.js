@@ -7,7 +7,6 @@ const DataDisplay = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [setPlayerCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -38,7 +37,6 @@ const DataDisplay = () => {
 
         setData(formattedPlayers);
         setPlayers(formattedPlayers);
-        setPlayerCount(formattedPlayers.length);
       } catch (error) {
         console.error("Erro ao obter dados da API:", error);
       }
@@ -70,8 +68,6 @@ const DataDisplay = () => {
         ? player.Team.toLowerCase() === selectedTeam.toLowerCase()
         : true
     );
-
-    setPlayerCount(filteredPlayers.length);
     setPlayers(filteredPlayers);
   };
 
