@@ -1,9 +1,9 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const mysql = require("mysql");
-const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import mysql from "mysql";
+import bcrypt from "bcrypt";
+import { Resend } from "resend";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -25,7 +25,7 @@ connection.connect((err) => {
 });
 
 // Middleware
-app.use(cors());  // Adicione esta linha
+app.use(cors()); // Adicione esta linha
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -192,14 +192,28 @@ app.get("/api/players", async (req, res) => {
   try {
     const query = `
       SELECT 
-      jogadores.PlayerID,
-      jogadores.FirstName,
-      jogadores.LastName,
-      jogadores.Position,
-      Equipas.Name AS TeamName
-  FROM 
-      jogadores
-  INNER JOIN Equipas ON jogadores.TeamID = Equipas.TeamID;
+        jogadores.Equipas_id_Equipas,
+        jogadores.PlayerID,
+        jogadores.FirstName,
+        jogadores.LastName,
+        jogadores.Position,
+        jogadores.Status,
+        jogadores.TeamID,
+        jogadores.Team,
+        CONCAT(Equipas.City, ' ', Equipas.Name) AS TeamName,
+        jogadores.Jersey,
+        jogadores.PositionCategory,
+        jogadores.Position,
+        jogadores.BirthDate,
+        jogadores.BirthCity,
+        jogadores.BirthState,
+        jogadores.BirthCountry,
+        jogadores.GlobalTeamID,
+        jogadores.Height,
+        jogadores.Weight
+      FROM 
+        jogadores
+      INNER JOIN Equipas ON jogadores.Equipas_id_Equipas = Equipas.id_Equipas;
     `;
 
     connection.query(query, (err, results) => {
@@ -215,8 +229,9 @@ app.get("/api/players", async (req, res) => {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
+
 // Atualiza um jogador existente
-app.put("/api/players/:id", (req, res) => {
+app.put("/api/players/update/:id", (req, res) => {
   const playerId = req.params.id;
   const updatedData = req.body;
 
@@ -275,62 +290,80 @@ app.put("/api/players/:id", (req, res) => {
   });
 });
 
+
 // Exclui um jogador existente
-app.delete("/api/players/:id", (req, res) => {
-  const playerId = req.params.id;
-
-  const deleteQuery = `
-    DELETE FROM Jogadores
-    WHERE PlayerID = ?;
-  `;
-
-  connection.query(deleteQuery, [playerId], (err, result) => {
-    if (err) {
-      console.error("Erro ao excluir jogador:", err);
-      res.status(500).send("Erro interno do servidor");
-    } else {
-      console.log("Jogador excluído com sucesso");
-      res.status(200).send("Jogador excluído com sucesso");
-    }
-  });
-});
-
-app.put("/updateData/:id", (req, res) => {
-  const id = req.params.id;
+app.put("/api/equipas/delete/:id", (req, res) => {
+  const equipeId = req.params.id;
   const updatedData = req.body;
 
-  if (isNaN(id)) {
-    return res.status(400).send("PlayerID inválido");
-  }
-
   const updateQuery = `
-    UPDATE jogadores
+    UPDATE Equipas
     SET 
-      FirstName = ?,
-      LastName = ?,
-      Position = ?
-      -- Adicione outros campos aqui
-    WHERE PlayerID = ?;
+      Status = ?
+    WHERE Equipas_id = ?;
   `;
 
-  const values = [
-    updatedData.FirstName,
-    updatedData.LastName,
-    updatedData.Position,
-    id // Usar a variável 'id' para identificar o jogador
-  ];
+  const values = [updatedData.Status, equipeId];
 
   connection.query(updateQuery, values, (err, result) => {
     if (err) {
-      console.error("Erro ao atualizar dados:", err);
+      console.error("Erro ao deletar os dados do jogador:", err);
       res.status(500).send("Erro interno do servidor");
     } else {
-      console.log("Dados atualizados com sucesso no banco de dados");
-      res.status(200).send("Dados atualizados com sucesso");
+      console.log("Dados do jogador deletados com sucesso");
+      res.status(200).send("Dados do jogador deletados com sucesso");
     }
   });
 });
 
+// Exclui um jogador existente
+app.put("/api/players/delete/:id", (req, res) => {
+  const playerId = req.params.id;
+  const updatedData = req.body;
+
+  const updateQuery = `
+    UPDATE Jogadores
+    SET 
+      Status = ?
+    WHERE PlayerID = ?;
+  `;
+
+  const values = [updatedData.Status, playerId];
+
+  connection.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error("Erro ao deletar os dados do jogador:", err);
+      res.status(500).send("Erro interno do servidor");
+    } else {
+      console.log("Dados do jogador deletados com sucesso");
+      res.status(200).send("Dados do jogador deletados com sucesso");
+    }
+  });
+});
+// Reativa um jogador deletado
+app.put("/api/players/reactivate/:id", (req, res) => {
+  const playerId = req.params.id;
+  const updatedData = req.body;
+
+  const updateQuery = `
+    UPDATE Jogadores
+    SET 
+      Status = ?
+    WHERE PlayerID = ?;
+  `;
+
+  const values = [updatedData.Status, playerId];
+
+  connection.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error("Erro ao reativar os dados do jogador:", err);
+      res.status(500).send("Erro interno do servidor");
+    } else {
+      console.log("Dados do jogador reativados com sucesso");
+      res.status(200).send("Dados do jogador reativados com sucesso");
+    }
+  });
+});
 
 // Função para obter IDs da Conferencia, Divisoes e Liga com base nos nomes
 const getConferenciaDivisoesLigaIds = async (conferenceName, divisionName) => {
@@ -380,6 +413,7 @@ app.post("/adddata2", async (req, res) => {
 
     const query = `
   INSERT INTO Equipas (
+    id_Equipas,
     Divisoes_id_Divisoes,
     Divisoes_Conferencia_id_Conferencia,
     Divisoes_Conferencia_Liga_id_Liga,
@@ -402,10 +436,11 @@ app.post("/adddata2", async (req, res) => {
     HeadCoach,
     StadiumID,
     LeagueID
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
     const values = [
+      teamData.TeamID,
       id_Divisoes,
       id_Conferencia,
       id_Liga,
@@ -442,10 +477,29 @@ app.post("/adddata2", async (req, res) => {
 app.get("/api/equipas", (req, res) => {
   const query = `
     SELECT 
+      Equipas.id_Equipas,
+      Equipas.Divisoes_id_Divisoes,
+      Equipas.Divisoes_Conferencia_id_Conferencia,
+      Equipas.Divisoes_Conferencia_Liga_id_Liga,
       Equipas.TeamID,
       Equipas.TeamKey,
+      Equipas.Active,
       Equipas.City,
-      Equipas.Name AS TeamName
+      CONCAT(Equipas.City, ' ', Equipas.Name) AS TeamName,
+      Equipas.Estadios_id_Estadios,
+      Equipas.Conference,
+      Equipas.Division,
+      Equipas.PrimaryColor,
+      Equipas.SecondaryColor,
+      Equipas.TertiaryColor,
+      Equipas.QuaternaryColor,
+      Equipas.WikipediaLogoUrl,
+      Equipas.WikipediaWordMarkUrl,
+      Equipas.GlobalTeamID,
+      Equipas.NbaDotComTeamID,
+      Equipas.HeadCoach,
+      Equipas.StadiumID,
+      Equipas.LeagueID
     FROM 
       Equipas
   `;
@@ -456,6 +510,345 @@ app.get("/api/equipas", (req, res) => {
       res.status(500).json({ error: "Erro interno do servidor" });
     } else {
       res.json(results);
+    }
+  });
+});
+
+// Rota para obter detalhes de um estádio específico
+app.get("/api/estadios/:id", (req, res) => {
+  const stadiumId = req.params.id;
+
+  const query = `
+    SELECT
+    Estadios.id_Estadios,
+    Estadios.StadiumID,
+    Estadios.Active,
+    Estadios.Name,
+    Estadios.Address,
+    Estadios.City,
+    Estadios.State,
+    Estadios.Zip,
+    Estadios.Country,
+    Estadios.Capacity,
+    Estadios.GeoLat,
+    Estadios.GeoLong
+    FROM
+      Estadios
+    WHERE
+    Estadios.id_Estadios = ?
+  `;
+
+  connection.query(query, [stadiumId], (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Estádio não encontrado" });
+    } else {
+      res.json(results[0]); // Retorna apenas o primeiro resultado (deve haver apenas um)
+    }
+  });
+});
+app.get("/api/classificacao", (req, res) => {
+  const query = `
+    SELECT 
+    Classificacao.Season, 
+    Classificacao.SeasonType, 
+    Classificacao.Equipas_id_Equipas, 
+    Classificacao.Equipas_Divisoes_id_Divisoes, 
+    Classificacao.Equipas_Divisoes_Conferencia_id_Conferencia, 
+    Classificacao.Equipas_Divisoes_Conferencia_Liga_id_Liga, 
+    Classificacao.Equipas_Estadios_id_Estadios, 
+    Classificacao.TeamID, 
+    Classificacao.TeamKey,
+    Classificacao.City, 
+    Classificacao.Name, 
+    Classificacao.Conference, 
+    Classificacao.Division, 
+    Classificacao.Wins, 
+    Classificacao.Losses, 
+    Classificacao.Percentage, 
+    Classificacao.ConferenceWins, 
+    Classificacao.ConferenceLosses, 
+    Classificacao.DivisionWins, 
+    Classificacao.DivisionLosses, 
+    Classificacao.HomeWins, 
+    Classificacao.HomeLosses, 
+    Classificacao.AwayWins, 
+    Classificacao.AwayLosses, 
+    Classificacao.LastTenWins, 
+    Classificacao.LastTenLosses, 
+    Classificacao.PointsPerGameFor,
+    Classificacao.PointsPerGameAgainst, 
+    Classificacao.Streak, 
+    Classificacao.GamesBack, 
+    Classificacao.StreakDescription, 
+    Classificacao.GlobalTeamID, 
+    Classificacao.ConferenceRank, 
+    Classificacao.DivisionRank, 
+    Classificacao.SeasonType_id_SeasonType
+    FROM 
+      Classificacao
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+app.post("/teste", async (req, res) => {
+  const resend = new Resend("re_WVgMm9nA_FvzVt2aFPQT4UL7HQ9uYisKB");
+  await resend.emails.send({
+    from: "Admin <admin@pap-miguel.online>",
+    to: ["aluno221014@epad.edu.pt"],
+    subject: "hello world",
+    text: "it works!",
+  });
+
+  console.log("Recebido");
+});
+// Rota para adicionar dados à tabela Classificacao
+app.get("/api/classificacao/:season", (req, res) => {
+  const season = req.params.season; // Obter o ano da temporada da requisição
+
+  const query = `
+    SELECT 
+    Classificacao.Season, 
+    Classificacao.SeasonType, 
+    Classificacao.Equipas_id_Equipas, 
+    Classificacao.Equipas_Divisoes_id_Divisoes, 
+    Classificacao.Equipas_Divisoes_Conferencia_id_Conferencia, 
+    Classificacao.Equipas_Divisoes_Conferencia_Liga_id_Liga, 
+    Classificacao.Equipas_Estadios_id_Estadios, 
+    Classificacao.TeamID, 
+    Classificacao.TeamKey,
+    Classificacao.City, 
+    Classificacao.Name, 
+    Classificacao.Conference, 
+    Classificacao.Division, 
+    Classificacao.Wins, 
+    Classificacao.Losses, 
+    Classificacao.Percentage, 
+    Classificacao.ConferenceWins, 
+    Classificacao.ConferenceLosses, 
+    Classificacao.DivisionWins, 
+    Classificacao.DivisionLosses, 
+    Classificacao.HomeWins, 
+    Classificacao.HomeLosses, 
+    Classificacao.AwayWins, 
+    Classificacao.AwayLosses, 
+    Classificacao.LastTenWins, 
+    Classificacao.LastTenLosses, 
+    Classificacao.PointsPerGameFor,
+    Classificacao.PointsPerGameAgainst, 
+    Classificacao.Streak, 
+    Classificacao.GamesBack, 
+    Classificacao.StreakDescription, 
+    Classificacao.GlobalTeamID, 
+    Classificacao.ConferenceRank, 
+    Classificacao.DivisionRank, 
+    Classificacao.SeasonType_id_SeasonType
+    FROM 
+      Classificacao
+    WHERE
+      Classificacao.Season = ?
+  `;
+
+  connection.query(query, [season], (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+app.post("/api/add/classificacao/all", (req, res) => {
+  const standings = req.body.standings;
+
+  const promises = standings.map((data) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        INSERT INTO Classificacao(
+        Season, 
+        SeasonType, 
+        Equipas_id_Equipas, 
+        Equipas_Divisoes_id_Divisoes, 
+        Equipas_Divisoes_Conferencia_id_Conferencia, 
+        Equipas_Divisoes_Conferencia_Liga_id_Liga, 
+        Equipas_Estadios_id_Estadios, 
+        TeamID, 
+        TeamKey,
+        City, 
+        Name, 
+        Conference, 
+        Division, 
+        Wins, 
+        Losses, 
+        Percentage, 
+        ConferenceWins, 
+        ConferenceLosses, 
+        DivisionWins, 
+        DivisionLosses, 
+        HomeWins, 
+        HomeLosses, 
+        AwayWins, 
+        AwayLosses, 
+        LastTenWins, 
+        LastTenLosses, 
+        PointsPerGameFor,
+        PointsPerGameAgainst, 
+        Streak, GamesBack, 
+        StreakDescription, 
+        GlobalTeamID, 
+        ConferenceRank, 
+        DivisionRank, 
+        SeasonType_id_SeasonType) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const seasonTypeValue = data.SeasonType; // Obter valor de SeasonType
+
+      connection.query(
+        query,
+        [
+          data.Season,
+          seasonTypeValue, // Usar o valor de SeasonType para SeasonType_id_SeasonType
+          data.id_Equipas,
+          data.Divisoes_id_Divisoes,
+          data.Divisoes_Conferencia_id_Conferencia,
+          data.Divisoes_Conferencia_Liga_id_Liga,
+          data.Estadios_id_Estadios,
+          data.TeamID,
+          data.Key,
+          data.City,
+          data.Name,
+          data.Conference,
+          data.Division,
+          data.Wins,
+          data.Losses,
+          data.Percentage,
+          data.ConferenceWins,
+          data.ConferenceLosses,
+          data.DivisionWins,
+          data.DivisionLosses,
+          data.HomeWins,
+          data.HomeLosses,
+          data.AwayWins,
+          data.AwayLosses,
+          data.LastTenWins,
+          data.LastTenLosses,
+          data.PointsPerGameFor,
+          data.PointsPerGameAgainst,
+          data.Streak,
+          data.GamesBack,
+          data.StreakDescription,
+          data.GlobalTeamID,
+          data.ConferenceRank,
+          data.DivisionRank,
+          seasonTypeValue, // Usar o valor de SeasonType para SeasonType_id_SeasonType
+        ],
+        (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        }
+      );
+    });
+  });
+
+  Promise.all(promises)
+    .then(() => {
+      res.status(201).json({
+        message: "Dados adicionados com sucesso à tabela Classificacao",
+      });
+    })
+    .catch((error) => {
+      console.error("Erro ao adicionar dados à tabela Classificacao:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    });
+});
+
+// Rota para obter todos os estádios
+app.get("/api/estadios", (req, res) => {
+  const query = `
+    SELECT
+    Estadios.id_Estadios,
+    Estadios.StadiumID,
+    Estadios.Active,
+    Estadios.Name,
+    Estadios.Address,
+    Estadios.City,
+    Estadios.State,
+    Estadios.Zip,
+    Estadios.Country,
+    Estadios.Capacity,
+    Estadios.GeoLat,
+    Estadios.GeoLong
+    FROM
+      Estadios
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+// Adicione uma nova rota para obter os detalhes de uma equipe por ID
+app.get("/api/equipas/:id", (req, res) => {
+  const equipeId = req.params.id;
+
+  const query = `
+    SELECT 
+      Equipas.id_Equipas,
+      Equipas.Divisoes_id_Divisoes,
+      Equipas.Divisoes_Conferencia_id_Conferencia,
+      Equipas.Divisoes_Conferencia_Liga_id_Liga,
+      Equipas.TeamID,
+      Equipas.TeamKey,
+      Equipas.Active,
+      Equipas.City,
+      CONCAT(Equipas.City, ' ', Equipas.Name) AS TeamName,
+      Equipas.Estadios_id_Estadios,
+      Equipas.Conference,
+      Equipas.Division,
+      Equipas.PrimaryColor,
+      Equipas.SecondaryColor,
+      Equipas.TertiaryColor,
+      Equipas.QuaternaryColor,
+      Equipas.WikipediaLogoUrl,
+      Equipas.WikipediaWordMarkUrl,
+      Equipas.GlobalTeamID,
+      Equipas.NbaDotComTeamID,
+      Equipas.HeadCoach,
+      Equipas.StadiumID,
+      Equipas.LeagueID
+    FROM 
+      Equipas
+    WHERE
+      Equipas.id_Equipas = ?
+  `;
+
+  connection.query(query, [equipeId], (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Equipe não encontrada" });
+    } else {
+      res.json(results[0]); // Retorna apenas o primeiro resultado (deve haver apenas um)
     }
   });
 });
@@ -472,7 +865,7 @@ app.put("/updateData2/:id", (req, res) => {
     UPDATE Teams
     SET 
       TeamName = ?,
-      City = ?,  -- Adicione outros campos aqui
+      City = ?, 
     WHERE TeamID = ?;
   `;
 
@@ -494,11 +887,12 @@ app.post("/adddata-stadium", async (req, res) => {
     const stadiumData = req.body;
 
     const query = `
-      INSERT INTO Estadios (StadiumID, Active, Name, Address, City, State, Zip, Country, Capacity, GeoLat, GeoLong)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Estadios (id_Estadios, StadiumID, Active, Name, Address, City, State, Zip, Country, Capacity, GeoLat, GeoLong)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
+      stadiumData.StadiumID,
       stadiumData.StadiumID,
       stadiumData.Active,
       stadiumData.Name,
@@ -518,111 +912,361 @@ app.post("/adddata-stadium", async (req, res) => {
   } catch (error) {
     console.error(
       "Erro ao adicionar dados do estádio ao banco de dados:",
-      error 
+      error
     );
     res.status(500).send("Erro interno do servidor");
   }
 });
 
-const jwt = require('jsonwebtoken');
+app.get("/api/games/:season/:team?", (req, res) => {
+  const { season, team } = req.params;
 
-app.post('/login', (req, res) => {
-  const { email, password, rolesid } = req.body;
-  console.log('Tentativa de login:', email);
-  const query = `SELECT * FROM users WHERE email = '${email}'`;
+  let query = `
+    SELECT *
+    FROM Jogos
+    WHERE Season = ?
+  `;
 
-  connection.query(query, async (err, results) => {
+  const params = [season];
+
+  if (team) {
+    query += ` AND (HomeTeam = ? OR AwayTeam = ?)`;
+    params.push(team, team);
+  }
+
+  connection.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+app.get("/api/game/:day", (req, res) => {
+  const { day } = req.params;
+
+  let query = `
+    SELECT *
+    FROM Jogos
+    WHERE Day = ?
+  `;
+
+  const params = [day];
+
+  connection.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+
+app.get("/api/games", (req, res) => {
+  const query = `
+    SELECT
+    *
+    FROM
+      Jogos
+  `;
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Erro ao obter dados do banco de dados:", err);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+app.post("/addgame", async (req, res) => {
+  try {
+    const game = req.body;
+    const query = `
+    INSERT INTO Jogos (
+      id_jogos,
+      Estadios_id_Estadios,
+      SeasonType_id_SeasonType,
+      GameID,
+      Season,
+      SeasonType,
+      Status,
+      Day,
+      DateTime,
+      AwayTeam,
+      HomeTeam,
+      AwayTeamID,
+      HomeTeamID,
+      StadiumID,
+      AwayTeamScore,
+      HomeTeamScore,
+      Updated,
+      GlobalGameID,
+      GlobalAwayTeamID,
+      GlobalHomeTeamID,
+      IsClosed,
+      NeutralVenue,
+      DateTimeUTC
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+    const values = [
+      game.GameID,
+      game.StadiumID,
+      game.SeasonType,
+      game.GameID,
+      game.Season,
+      game.SeasonType,
+      game.Status,
+      game.Day,
+      game.DateTime,
+      game.AwayTeam,
+      game.HomeTeam,
+      game.AwayTeamID,
+      game.HomeTeamID,
+      game.StadiumID,
+      game.AwayTeamScore,
+      game.HomeTeamScore,
+      game.Updated,
+      game.GlobalGameID,
+      game.GlobalAwayTeamID,
+      game.GlobalHomeTeamID,
+      game.IsClosed,
+      game.NeutralVenue,
+      game.DateTimeUTC,
+      game.SeriesInfo,
+    ];
+
+    await connection.query(query, values);
+    console.log("Dados do jogo adicionados com sucesso ao banco de dados");
+    res.status(200).send("Dados do jogo adicionados com sucesso");
+  } catch (error) {
+    console.error("Erro ao adicionar dados do jogo ao banco de dados:", error);
+    res.status(500).send("Erro interno do servidor");
+  }
+});
+
+import jwt from "jsonwebtoken";
+
+app.post("/login", async (req, res) => {
+  const { emailOrUsername, password } = req.body;
+  console.log("Tentativa de login:", emailOrUsername);
+
+  try {
+    const query = "SELECT * FROM users WHERE email = ? OR username = ?";
+    connection.query(query, [emailOrUsername, emailOrUsername], async (err, results) => {
       if (err) {
-          return res.status(500).json({ message: 'Erro ao autenticar' });
+        console.error("Erro ao autenticar:", err);
+        return res.status(500).json({ message: "Erro ao autenticar" });
       }
 
       if (results.length > 0) {
-          const user = results[0];
+        const user = results[0];
+        if (user.verificado_id === 2) {
           const passwordMatch = await bcrypt.compare(password, user.password);
-
           if (passwordMatch) {
-              // Gerar token JWT
-              const token = jwt.sign({ userId: user.id }, 'seu_segredo_secreto', { expiresIn: '1h' });
-              res.json({ user, token }); // Retornar o token junto com os dados do usuário
+            const token = jwt.sign({ userId: user.id }, "seu_segredo_secreto", {
+              expiresIn: "1h",
+            });
+            res.json({ user, token });
           } else {
-              res.status(401).json({ message: 'Credenciais inválidas' });
+            res.status(401).json({ message: "Credenciais inválidas" });
           }
+        } else {
+          console.log("Verifique a sua conta no seu email");
+          res.status(401).json({ message: "Conta não verificada" });
+        }
       } else {
-          res.status(401).json({ message: 'Credenciais inválidas' });
+        res.status(401).json({ message: "Credenciais inválidas" });
       }
-  });
+    });
+  } catch (error) {
+    console.error("Erro ao autenticar:", error);
+    res.status(500).json({ message: "Erro ao autenticar" });
+  }
 });
 
 
-// Create a nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "aluno221014@epad.edu.pt", // Replace with your Gmail email address
-    pass: "Miguel2006", // Replace with your Gmail password
-  },
-});
+const sendWelcomeEmail = async (email, userId) => {
+  try {
+    // Construa o link para verificar o usuário
+    const verificationLink = `http://localhost:8000/verify-user/${userId}`;
 
-const verificationCodes = {};
+    // Construa o corpo do e-mail com o link de verificação
+    const emailBody = `
+      <html>
+        <head>
+          <style>
+            /* Estilos CSS para o e-mail */
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              padding: 20px;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #fff;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+            }
+            h2 {
+              color: #333;
+            }
+            p {
+              color: #666;
+            }
+            .button {
+              display: inline-block;
+              background-color: #007bff;
+              color: #fff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Bem-vindo ao nosso serviço!</h2>
+            <p>Estamos muito felizes em tê-lo como parte da nossa comunidade.</p>
+            <p>Para verificar sua conta, clique no botão abaixo:</p>
+            <a href="${verificationLink}" class="button">Verificar Conta</a>
+            <p>Se você não solicitou esta verificação, por favor, ignore este e-mail.</p>
+            <p>Atenciosamente,<br/>A equipe do nosso serviço</p>
+          </div>
+        </body>
+      </html>
+    `;
 
-const generateVerificationCode = () => {
-  // Gera um código de verificação de 4 dígitos
-  return Math.floor(1000 + Math.random() * 9000).toString();
+    // Envie o e-mail de boas-vindas para o e-mail fornecido
+    const resend = new Resend("re_WVgMm9nA_FvzVt2aFPQT4UL7HQ9uYisKB");
+    await resend.emails.send({
+      from: "Admin <admin@pap-miguel.online>",
+      to: [email],
+      subject: "Bem-vindo ao Nosso Serviço!",
+      html: emailBody,
+    });
+
+    console.log("E-mail de boas-vindas enviado para:", email);
+  } catch (error) {
+    console.error("Erro ao enviar e-mail de boas-vindas:", error.message);
+    throw new Error("Erro ao enviar e-mail de boas-vindas");
+  }
 };
 
-const sendVerificationEmail = (email, verificationCode) => {
-  const mailOptions = {
-    from: "aluno221014@epad.edu.pt",
-    to: email,
-    subject: "Email Verification Code",
-    text: `Your verification code is: ${verificationCode}`,
-  };
+app.get("/verify-user/:userId", async (req, res) => {
+  const userId = req.params.userId;
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error sending email:", error);
-    } else {
-      console.log("Email sent:", info.response);
+  // Atualize o id_verificado do usuário para 2
+  const updateQuery = "UPDATE users SET verificado_id = 2 WHERE id = ?";
+
+  // Consulta para obter o nome de usuário do usuário
+  const getusernameQuery = "SELECT username FROM users WHERE id = ?";
+
+  connection.query(updateQuery, [userId], (updateErr, updateResults) => {
+    if (updateErr) {
+      console.error("Erro ao verificar usuário:", updateErr);
+      return res.status(500).json({ message: "Erro ao verificar usuário" });
     }
-  });
-};
 
-app.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+    // Consulta para obter o nome de usuário do usuário
+    connection.query(getusernameQuery, [userId], (getusernameErr, getusernameResults) => {
+      if (getusernameErr) {
+        console.error("Erro ao obter nome de usuário:", getusernameErr);
+        return res.status(500).json({ message: "Erro ao obter nome de usuário" });
+      }
+
+      // Verificação bem-sucedida, enviando o nome de usuário junto com a resposta
+      const username = getusernameResults[0].username;
+      console.log("Usuário verificado com sucesso:", username);
+      res.json({ message: "Usuário verificado com sucesso", username });
+    });
+  });
+});
+
+app.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
 
   // Verificar se o email já está em uso
-  const emailCheckQuery = 'SELECT * FROM users WHERE email = ?';
+  const emailCheckQuery = "SELECT * FROM users WHERE email = ?";
+  const usernameCheckQuery = "SELECT * FROM users WHERE username = ?";
 
-  connection.query(emailCheckQuery, [email], async (emailCheckErr, emailCheckResults) => {
-    if (emailCheckErr) {
-      return res.status(500).json({ message: 'Erro ao verificar email' });
-    }
+  // Verificar se o username já está em uso
+  connection.query(
+    usernameCheckQuery,
+    [username],
+    async (usernameCheckErr, usernameCheckResults) => {
+      if (usernameCheckErr) {
+        return res.status(500).json({ message: "Erro ao verificar username" });
+      }
 
-    if (emailCheckResults.length > 0) {
-      return res.status(400).json({ message: 'Email já registrado' });
-    }
+      if (usernameCheckResults.length > 0) {
+        return res.status(400).json({ message: "username já registrado" });
+      }
 
-    // Se o email não estiver em uso, proceder com o registro
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10); // 10 é o número de rounds de hashing
-      const registerQuery = 'INSERT INTO users (email, password, rolesid) VALUES (?, ?, 2)';
+      // Se o username não estiver em uso, verificar o email
+      connection.query(
+        emailCheckQuery,
+        [email],
+        async (emailCheckErr, emailCheckResults) => {
+          if (emailCheckErr) {
+            return res.status(500).json({ message: "Erro ao verificar email" });
+          }
 
-      connection.query(registerQuery, [email, hashedPassword], (registerErr, registerResults) => {
-        if (registerErr) {
-          return res.status(500).json({ message: 'Erro ao registrar' });
+          if (emailCheckResults.length > 0) {
+            return res.status(400).json({ message: "Email já registrado" });
+          }
+
+          // Se o email e o username não estiverem em uso, proceder com o registro
+          try {
+            const hashedPassword = await bcrypt.hash(password, 10); // 10 é o número de rounds de hashing
+            const registerQuery =
+              "INSERT INTO users (email, password, username, rolesid, verificado_id) VALUES (?, ?, ?, 2, 1)";
+
+            connection.query(
+              registerQuery,
+              [email, hashedPassword, username],
+              (registerErr, registerResults) => {
+                if (registerErr) {
+                  console.error(registerErr);
+                  return res.status(500).json({ message: "Erro ao registrar" });
+                }
+
+                const userId = registerResults.insertId;
+
+                // Agora, envie o e-mail de boas-vindas após o registro
+                sendWelcomeEmail(email, userId)
+                  .then(() => {
+                    console.log("E-mail de boas-vindas enviado para:", email);
+                  })
+                  .catch((error) => {
+                    console.error(
+                      "Erro ao enviar e-mail de boas-vindas:",
+                      error.message
+                    );
+                  });
+
+                res.json({
+                  user: { id: userId, email, username, rolesid: 2, verificado_id: 1 },
+                });
+              }
+            );
+          } catch (registerError) {
+            console.error(registerError);
+            res.status(500).json({ message: "Erro ao registrar" });
+          }
         }
-
-        const userId = registerResults.insertId;
-        res.json({ user: { id: userId, email, rolesid: 2 } });
-      });
-    } catch (registerError) {
-      console.error(registerError);
-      res.status(500).json({ message: 'Erro ao registrar' });
+      );
     }
-  });
+  );
 });
-
-
 
 // Inicie o servidor
 app.listen(PORT, () => {

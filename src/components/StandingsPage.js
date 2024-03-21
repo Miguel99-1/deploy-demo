@@ -10,7 +10,7 @@ const StandingsPage = () => {
   }, []);
 
   const fetchStandings = (season) => {
-    fetch(`https://api.sportsdata.io/v3/nba/scores/json/Standings/${season}?key=ada39cffc94442059f91f8c50e7d0dff`)
+    fetch(`http://localhost:8000/api/classificacao/${season}`)
       .then(response => response.json())
       .then(data => {
         setStandings(data);

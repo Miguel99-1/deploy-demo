@@ -1,13 +1,12 @@
-// AuthButton.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaUser } from 'react-icons/fa'; // Importe o ícone de perfil
 
 const AuthButton = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    onLogout();
-    navigate('/login');
+    onLogout(); // Redireciona o usuário para a página inicial após o logout
   };
 
   return (
@@ -26,7 +25,11 @@ const AuthButton = ({ user, onLogout }) => {
               }}
             />
           )}
-          <span>{user.email}</span>
+          <span>{user.username}</span>
+          {/* Adicione o botão de perfil com o ícone */}
+          <Link to="/profile" style={{ marginLeft: '10px' }}>
+            <FaUser />
+          </Link>
           <button onClick={handleLogout}>Logout</button>
         </>
       ) : (

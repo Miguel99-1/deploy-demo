@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 
-const DayGamesPage = () => {
-  const [selectedDay, setSelectedDay] = useState('');
+const SeasonGamesPage = () => {
+  const [selectedDay, setSelectedDay] = useState("");
   const [games, setGames] = useState([]);
+
+  useEffect(() => {
+    fetchGames();
+  }, []);
 
   const fetchGames = () => {
     // Limpa os jogos antes de fazer uma nova busca
     setGames([]);
 
-    // Faz a busca dos jogos para o dia selecionado
-    fetch(`https://api.sportsdata.io/v3/nba/scores/json/ScoresBasic/${selectedDay}?key=ada39cffc94442059f91f8c50e7d0dff`)
-      .then(response => response.json())
-      .then(data => {
-        // Verifica se a resposta possui uma propriedade 'games'
-        const gamesData = Array.isArray(data) ? data : data.games || [];
-        setGames(gamesData);
+    // Verifica se o dia foi selecionado
+    if (!selectedDay) {
+      console.error("Por favor, selecione o dia.");
+      return;
+    }
+
+    // Constrói a URL para obter os jogos do dia selecionado
+    const dayGamesUrl = `http://localhost:8000/api/game/${selectedDay}`;
+
+    // Faz a busca dos jogos do dia selecionado
+    fetch(dayGamesUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        setGames(data);
       })
-      .catch(error => console.error('Erro ao obter dados da API:', error));
+      .catch((error) =>
+        console.error("Erro ao obter dados da API de jogos:", error)
+      );
   };
 
   return (
@@ -27,7 +40,7 @@ const DayGamesPage = () => {
       <input
         type="text"
         id="dayInput"
-        placeholder="Ex: 2023-10-24"
+        placeholder="Ex: 2024-03-20"
         value={selectedDay}
         onChange={(e) => setSelectedDay(e.target.value)}
       />
@@ -60,4 +73,4 @@ const DayGamesPage = () => {
   );
 };
 
-export default DayGamesPage;
+export default SeasonGamesPage;

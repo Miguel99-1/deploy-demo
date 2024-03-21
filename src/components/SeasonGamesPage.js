@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const SeasonGamesPage = () => {
-  const [selectedSeason, setSelectedSeason] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState("2024");
+  const [selectedTeam, setSelectedTeam] = useState("");
   const [teams, setTeams] = useState([]);
   const [games, setGames] = useState([]);
 
   useEffect(() => {
     fetchTeams();
+    fetchGames();
   }, []);
 
   const fetchTeams = () => {
-    fetch('https://api.sportsdata.io/v3/nba/scores/json/teams?key=ada39cffc94442059f91f8c50e7d0dff')
-      .then(response => response.json())
-      .then(data => {
+    fetch("http://localhost:8000/api/equipas") // Alterando a URL para buscar as equipas
+      .then((response) => response.json())
+      .then((data) => {
         setTeams(data);
       })
-      .catch(error => {
-        console.error('Erro ao obter dados da API:', error);
+      .catch((error) => {
+        console.error("Erro ao obter dados da API de equipas:", error);
       });
   };
 
@@ -27,28 +28,27 @@ const SeasonGamesPage = () => {
 
     // Verifica se a temporada foi selecionada
     if (!selectedSeason) {
-      console.error('Por favor, selecione a temporada.');
+      console.error("Por favor, selecione a temporada.");
       return;
     }
 
-    // Obtém o ID da equipa selecionada
-    const selectedTeamId = selectedTeam ? teams.find(team => team.Name === selectedTeam)?.TeamID : null;
+    // Verifica se a equipa foi selecionada
+    let seasonGamesUrl = `http://localhost:8000/api/games/${selectedSeason}`;
 
-    // Constrói a URL para obter os jogos da temporada
-    const seasonGamesUrl = `https://api.sportsdata.io/v3/nba/scores/json/SchedulesBasic/${selectedSeason}?key=ada39cffc94442059f91f8c50e7d0dff`;
+    // Se uma equipa foi selecionada, adiciona o parâmetro à URL
+    if (selectedTeam) {
+      seasonGamesUrl += `/${selectedTeam}`;
+    }
 
-    // Faz a busca dos jogos com a temporada selecionada
+    // Faz a busca dos jogos com a temporada e equipa selecionadas (se houver)
     fetch(seasonGamesUrl)
-      .then(response => response.json())
-      .then(data => {
-        // Filtra os jogos pela equipa selecionada, se houver uma
-        const teamGames = selectedTeamId
-          ? data.filter(game => game.AwayTeamID === selectedTeamId || game.HomeTeamID === selectedTeamId)
-          : data;
-
-        setGames(teamGames);
+      .then((response) => response.json())
+      .then((data) => {
+        setGames(data);
       })
-      .catch(error => console.error('Erro ao obter dados da API:', error));
+      .catch((error) =>
+        console.error("Erro ao obter dados da API de jogos:", error)
+      );
   };
 
   return (
@@ -71,9 +71,9 @@ const SeasonGamesPage = () => {
         onChange={(e) => setSelectedTeam(e.target.value)}
       >
         <option value="">-- Selecionar Equipa --</option>
-        {teams.map(team => (
-          <option key={team.TeamID} value={team.Name}>
-            {team.Name}
+        {teams.map((team) => (
+          <option key={team.TeamID} value={team.TeamKey}>
+            {team.TeamName}
           </option>
         ))}
       </select>

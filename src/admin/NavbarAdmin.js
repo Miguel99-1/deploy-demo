@@ -22,19 +22,7 @@ const NavbarAdmin = ({ user, onLogout, onReturnToNormalNavbar }) => {
   };
 
   return (
-    <NavbarContainer>
-      <div>
-        <Link to="/">
-          <img
-            src="https://placehold.it/50x50"
-            alt="Logo"
-            style={{ marginRight: "10px" }}
-          />
-        </Link>
-        <span style={{ color: "#fff", fontSize: "20px", fontWeight: "bold" }}>
-          Nome do Seu Site
-        </span>
-      </div>
+    <NavbarContainer className="mt-4 rounded-lg">
       <NavList>
         {user && (
           <>

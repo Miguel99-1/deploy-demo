@@ -1,140 +1,135 @@
-// GlobalStyles.js
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyles = createGlobalStyle`
-/* Global styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+  /* Reset styles */
+  * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
-  
+
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #e8eaf6; /* Fundo do corpo - cinza mais claro */
+    color: #333; /* Cor do texto principal - cinza escuro */
+    line-height: 1.6;
+  }
+
+  a {
+    text-decoration: none;
+    color: #2196f3; /* Azul */
+  }
+
+  /* Container */
   .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
   }
-  
-  /* Header styles */
+
+  /* Header */
   header {
-    background-color: #333;
-    color: #fff;
+    background-color: #1976d2; /* Azul */
+    color: #fff; /* Branco */
     padding: 20px 0;
     text-align: center;
   }
-  
+
   header h1 {
-    margin: 0;
     font-size: 36px;
+    margin-bottom: 10px;
   }
-  
-  /* Navigation styles */
+
+  header p {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  /* Navbar */
   nav {
-    background-color: #444;
-    padding: 10px 0;
+    background-color: #1976d2; /* Azul */
+    color: #fff; /* Branco */
+    padding: 8px 0; /* Ajuste do padding */
     text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra */
   }
-  
+
   nav ul {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  
+
   nav ul li {
-    display: inline;
-    margin: 0 10px;
+    margin-right: 10px;
   }
-  
+
+  nav ul li:last-child {
+    margin-right: 0;
+  }
+
   nav ul li a {
     color: #fff;
-    text-decoration: none;
-    font-size: 18px;
+    font-size: 16px;
+    margin-right: 10px;
+    padding: 10px 20px; /* Espaçamento interno */
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
   }
-  
+
   nav ul li a:hover {
-    color: #ffcc00;
+    background-color: #0d47a1; /* Azul mais escuro */
   }
-  
-  /* Form styles */
-  form {
-    margin-bottom: 20px;
-  }
-  
-  form label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  
-  form input[type="text"],
-  form input[type="email"],
-  form input[type="password"],
-  form select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  form button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  form button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Table styles */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-  }
-  
-  table th,
-  table td {
-    padding: 10px;
-    border: 1px solid #ccc;
-    text-align: center;
-  }
-  
-  table th {
-    background-color: #333;
-    color: #fff;
-  }
-  
-  /* Button styles */
+
+  /* Button */
   button {
-    background-color: #28a745;
-    color: #fff;
+    background-color: #fff; /* Branco */
+    color: #2196f3; /* Azul */
     border: none;
-    padding: 10px 20px;
+    padding: 10px 20px; /* Espaçamento interno */
     font-size: 16px;
     cursor: pointer;
     border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   button:hover {
-    background-color: #218838;
+    background-color: #1976d2; /* Azul mais escuro */
+    color: #fff; /* Branco */
   }
-  
-  /* Footer styles */
-  footer {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 20px 0;
+
+ 
+
+  .header {
+    padding: 50px;
+    border-radius: 50px;
   }
-  
+
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+
+
+  .text-white {
+    color: white;
+    font-size: 35px
+  }
+
+  .text-gray {
+    color: #ffffff
+  }
+
 `;
 
 export default GlobalStyles;
